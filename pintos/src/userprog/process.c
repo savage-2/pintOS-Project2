@@ -38,8 +38,13 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
+  /* split executable file_name and parameter_name */
+  char *thread_name = NULL;
+  char *parameter = NULL;
+  thread_name = strtok_r(file_name, " ", &parameter);
+
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (thread_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;
@@ -54,18 +59,54 @@ start_process (void *file_name_)
   struct intr_frame if_;
   bool success;
 
+  /* split executable file_name and parameter_name */
+  char *token = NULL;
+  char *parameter = NULL;
+  token = strtok_r(file_name, " ", &parameter);
+
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  success = load (file_name, &if_.eip, &if_.esp);
+  success = load (token, &if_.eip, &if_.esp);
 
-  /* If load failed, quit. */
-  palloc_free_page (file_name);
   if (!success) 
     thread_exit ();
 
+  char *temp_esp = if_.esp; //get stack pointer
+  int num = -1;
+  char *parameters[1024]; //store each parameter
+  for (; token != NULL; token = strtok_r (NULL, " ", &parameter)){
+    num++;
+    parameters[num] = token;
+  }
+
+  char *address_parameter[num]; //store address of each parameter
+  for(int i = num;i>0;i--){
+    if_.esp = if_.esp-(strlen(parameters[i])+1);
+    address_parameter[i] = if_.esp;
+    strlcpy(if_.esp,parameters[i],strlen(parameters[i])+2);
+  }
+  while((int)if_.esp%4!=0){
+    if_.esp--;
+  }
+
+  int *temp = if_.esp-4;
+  *temp-- = 0;
+  for(int i=num;i>0;i--){
+    *temp--=address_parameter[i];
+  }
+  *temp--=temp+1;
+  *temp--=num;
+  *temp--=0;
+  if_.esp = temp+1;
+
+
+
+
+  /* If load failed, quit. */
+  palloc_free_page (file_name);
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
