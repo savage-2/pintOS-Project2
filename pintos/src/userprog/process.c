@@ -71,8 +71,13 @@ start_process (void *file_name_)
   if_.eflags = FLAG_IF | FLAG_MBS;
   success = load (token, &if_.eip, &if_.esp);
 
-  if (!success) 
+  struct thread *current =thread_current();
+  if (!success) {
+    sema_up(&current->semaWS);
     thread_exit ();
+  }
+
+  sema_up(&current->semaWS);
 
   char *temp_esp = if_.esp; //get stack pointer
   int argc = -1;

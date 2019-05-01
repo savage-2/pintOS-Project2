@@ -97,6 +97,7 @@ thread_init (void)
   initial_thread = running_thread ();
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
+  sema_init (&initial_thread->semaWS, 0);
   initial_thread->tid = allocate_tid ();
 }
 
@@ -336,6 +337,29 @@ thread_foreach (thread_action_func *func, void *aux)
       func (t, aux);
     }
 }
+
+
+/* Return the thread based on its tid */
+struct thread *
+thread_search ( int targetTid ) 
+{
+  struct list_elem *e;
+  struct thread *t;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+
+  for (e = list_begin (&all_list); e != list_end (&all_list);
+       e = list_next (e))
+    {
+      struct thread *t = list_entry (e, struct thread, allelem);
+      if (t->tid == targetTid) {
+        return t;
+      }
+
+    }
+  return NULL;
+}
+
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
