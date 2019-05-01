@@ -87,6 +87,12 @@ wait (pid_t pid)
   return syscall1 (SYS_WAIT, pid);
 }
 
+int 
+practice (int num)
+{
+  return syscall1 (SYS_PRACTICE, num);
+}
+
 bool
 create (const char *file, unsigned initial_size)
 {
