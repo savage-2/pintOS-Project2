@@ -75,18 +75,18 @@ start_process (void *file_name_)
     thread_exit ();
 
   char *temp_esp = if_.esp; //get stack pointer
-  int num = -1;
-  char *parameters[1024]; //store each parameter
+  int argc = -1;
+  char *argv[1024]; //store each parameter
   for (; token != NULL; token = strtok_r (NULL, " ", &parameter)){
-    num++;
-    parameters[num] = token;
+    argc++;
+    argv[argc] = token;
   }
 
-  char *address_parameter[num]; //store address of each parameter
-  for(int i = num;i>0;i--){
-    if_.esp = if_.esp-(strlen(parameters[i])+1);
+  char *address_parameter[argc]; //store address of each parameter
+  for(int i = argc;i>0;i--){
+    if_.esp = if_.esp-(strlen(argv[i])+1);
     address_parameter[i] = if_.esp;
-    strlcpy(if_.esp,parameters[i],strlen(parameters[i])+2);
+    strlcpy(if_.esp,argv[i],strlen(argv[i])+2);
   }
   while((int)if_.esp%4!=0){
     if_.esp--;
@@ -94,11 +94,11 @@ start_process (void *file_name_)
 
   int *temp = if_.esp-4;
   *temp-- = 0;
-  for(int i=num;i>0;i--){
+  for(int i=argc;i>0;i--){
     *temp--=address_parameter[i];
   }
   *temp--=temp+1;
-  *temp--=num;
+  *temp--=argc;
   *temp--=0;
   if_.esp = temp+1;
 
