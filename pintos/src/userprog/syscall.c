@@ -66,13 +66,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       f->eax = newThread->tid;
 
       /* wake up the child thread */
-      sema_up(&newThread->semaWS);
-
-      {
-        /* data */
-      };
-      
-
+      sema_up(&newThread->semaWS);  
     }
 
 
@@ -105,7 +99,6 @@ syscall_handler (struct intr_frame *f UNUSED)
          the return value is the return value of filesys_create() */
       f->eax = filesys_create(fileName, fileSize);
       break;
-
     }
 
 
@@ -173,9 +166,29 @@ syscall_handler (struct intr_frame *f UNUSED)
     }
 
 
-    /* 8-filesize */
+    /* 8-filesize : get the size of file in the indicated fd
+       return : size of file */
     case SYS_FILESIZE: {
 
+      int fd = *(sp+1);
+      
+      /* if the fd is invalid */
+      if (fd < 0) {
+        f->eax = 0;
+        break;
+      }
+
+      /* find the file_description by its fd vlaue in current thread */
+      struct file_description* file = thread_find_fd(thread_current(), fd);
+      /* if the file isn't exist, break */
+      if (file == NULL) {
+        f->eax = 0;
+        break;
+      }
+
+      /* get the lenght of file by calling file_length() */
+      f->eax = file_length(file->f);
+      break;
     }
 
     /* 9-read */
@@ -218,14 +231,58 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;    
     }
 
-    /* 11-seek */
-    case SYS_SEEK: {
 
+    /* 11-seek : Changes the next byte to be read or written in open file fd to position 
+        return : nothing */
+    case SYS_SEEK: {
+      int fd = *(sp+1);
+      int position = *(sp+2);
+
+      /* invalid fd value */
+      if ( fd < 0) {
+        break;
+      }
+
+      struct file_description* seekFd = thread_find_fd(thread_current(), fd);
+      /* the fd itself cannot be NULL */
+      if (seekFd == NULL) {
+        break;
+      } 
+      /* the file in seekFd cannot be NULL*/
+      if (seekFd->f == NULL) {
+        break;
+      }
+
+      /* call file_seek() to seek the new position */
+      file_seek(seekFd->f, position);
+      break;
     }
 
-    /* 12-tell */
-    case SYS_TELL: {
 
+    /* 12-tell : position of the next byte to be read or written in open file fd 
+        return : position */
+    case SYS_TELL: {
+      int fd = *(sp+1);
+
+      /* invalid fd value */
+      if ( fd < 0) {
+        break;
+      }
+
+      struct file_description* tellFd = thread_find_fd(thread_current(), fd);
+      /* the fd itself cannot be NULL */
+      if (tellFd == NULL) {
+        break;
+      } 
+      /* the file in tellFd cannot be NULL*/
+      if (tellFd->f == NULL) {
+        break;
+      }
+
+      /* call file_tell() to get the position value */
+      f->eax = file_tell(tellFd->f);
+
+      break;
     }
 
     /* 13-close : close the opened file in the fd_list of current_thread base on file descriptor
@@ -246,6 +303,9 @@ syscall_handler (struct intr_frame *f UNUSED)
 
       /* close the file in this file_description */
       file_close(closeFd->f);
+      
+      /* free this fd at last */
+      free(closeFd);
       break;
     }
 
