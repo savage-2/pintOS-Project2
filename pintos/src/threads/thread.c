@@ -384,6 +384,32 @@ thread_find_fd ( struct thread* t, int targetFd )
   return NULL;
 }
 
+/* Find the aimed file_description and remove it from thread's fd_list */
+void 
+thread_remove_fd ( struct thread* t, int targetFd ) 
+{
+
+  struct list_elem *e;
+  struct list* fd_list = &(t->fds);
+  struct file_description* tempFd;
+  int tempFd;
+
+  if (fd_list)
+  
+  for (e = list_begin (fd_list); e != list_end (fd_list);
+       e = list_next (e))
+    {
+      tempFd = list_entry(e, struct file_description, elem);
+
+      /* if the tempFd has the targetFd, remove e */
+      if (tempFd->fd == targetFd) {
+        list_remove(e);
+        return;
+      }
+    }
+}
+
+
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) 

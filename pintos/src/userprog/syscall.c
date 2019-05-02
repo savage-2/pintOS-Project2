@@ -92,7 +92,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       
       const char *fileName = (char*)*(sp+1);
 
-      /* if the filename is empty or two long, exit */
+      /* if the filename is empty or too long, exit */
       if ( fileName == NULL | strlen(fileName) >= FILENAME_MAX_LEN ) {
          printf ("thread %s has exited!\n", thread_name());
          thread_exit();
@@ -113,6 +113,15 @@ syscall_handler (struct intr_frame *f UNUSED)
        return value: true if successful, false otherwise */ 
     case SYS_REMOVE: {
       const char *fileName = (char*)*(sp+1);
+
+      /* if the filename is empty or too long, exit */
+      if ( fileName == NULL | strlen(fileName) >= FILENAME_MAX_LEN ) {
+        thread_exit();
+        break;
+      } else {
+        /* call filesys_remove and set its return value to return */
+        f->eax = filesys_remove(fileName);
+      }
     }
 
 
@@ -219,9 +228,25 @@ syscall_handler (struct intr_frame *f UNUSED)
 
     }
 
-    /* 13-close */
+    /* 13-close : close the opened file in the fd_list of current_thread base on file descriptor
+      return : void  */
     case SYS_CLOSE: {
 
+      int fd = *(sp+1);
+
+      /* if the fd is wrong, return */
+      if (fd < 0) {
+        return;
+      }
+      
+      /* find the file_description by its fd value */
+      struct file_description* closeFd = thread_find_fd(thread_current(), fd);
+      /* remove this file_description from the fd_list */
+      thread_remove_fd(thread_current(), fd);
+
+      /* close the file in this file_description */
+      file_close(closeFd->f);
+      break;
     }
 
     
