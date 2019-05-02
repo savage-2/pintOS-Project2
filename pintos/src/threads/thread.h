@@ -90,8 +90,10 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-    struct semaphore semaWS;    /* Block the parent thread until the child has executed or failed */
-
+    struct semaphore semaWS;            /* Block the parent thread until the child has executed or failed */
+    struct list childs;                 /* Record the child threads */
+    struct list_elem chile_elem;        /* Child elemment */
+    struct list fds;                    /* File description list */  
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
@@ -112,6 +114,14 @@ struct thread
     struct lock *waiting_lock;  /*task 2: save the lock that thread is waiting for*/
   };
 
+  /* for file syscall */
+  struct file_description
+  {    
+    int fd;                   /* file descriptor */
+    struct file* f;           /* file pointer */
+    struct list_elem elem;    /* list element */ 
+  };
+
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
@@ -130,7 +140,8 @@ void thread_block (void);
 void thread_unblock (struct thread *);
 
 struct thread *thread_current (void);
-struct thread *thread_search ( int targetTid );
+struct thread * thread_search ( int targetTid );
+
 tid_t thread_tid (void);
 const char *thread_name (void);
 
@@ -162,5 +173,7 @@ void donate_priority(struct thread *t);
 
 bool operator_great_prev_priority(const struct list_elem *a, const struct list_elem *b);
 bool operator_great_priority(const struct list_elem *a, const struct list_elem *b);
+bool fd_cmp (const struct list_elem *a, const struct list_elem *b);
 
 #endif /* threads/thread.h */
+

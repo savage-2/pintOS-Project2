@@ -753,3 +753,9 @@ bool operator_great_prev_priority(const struct list_elem *a, const struct list_e
 bool operator_great_priority(const struct list_elem *a, const struct list_elem *b){ 
     return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
   }
+
+/* fd value compare function. */
+bool fd_cmp (const struct list_elem *a, const struct list_elem *b)
+{
+  return list_entry(a, struct file_description, elem)->fd > list_entry(a, struct file_description, elem)->fd;
+}

@@ -82,20 +82,83 @@ syscall_handler (struct intr_frame *f UNUSED)
 
     }
 
-    /* 5-create */ 
+    /* 5-create : create a new thread with initial size
+       return value: true if successful, false otherwise */ 
     case SYS_CREATE: {
+      
+      const char *fileName = (char*)*(sp+1);
+
+      /* if the filename is empty or two long, exit */
+      if ( fileName == NULL | strlen(fileName) >= FILENAME_MAX_LEN ) {
+         printf ("thread %s has exited!\n", thread_name());
+         thread_exit();
+         break;
+      }
+
+      unsigned fileSize = (unsigned)*(sp+2);
+
+      /* create the file by the function in filesys.c
+         the return value is the return value of filesys_create() */
+      f->eax = filesys_create(fileName, fileSize);
+      break;
 
     }
 
-    /* 6-remove */
+
+    /* 6-remove : remove the file based on its name 
+       return value: true if successful, false otherwise */ 
     case SYS_REMOVE: {
-
+      const char *fileName = (char*)*(sp+1);
     }
 
-    /* 7-open */
+
+    /* 7-open : remove the file based on its name
+       return value: the file descriptor if opened successfully, -1 otherwiase */
     case SYS_OPEN: {
 
+      const char *fileName = (char*)*(sp+1);
+      struct file *newFile;
+
+      /* open the file and get its pointer by filesys_open() */
+      newFile = filesys_open(fileName);
+
+      /* if open failed, return -1 */
+      if (newFile == NULL) {
+        f->eax = -1;
+        return;
+      }
+
+      /* get the right fd of new opened file */
+      int fdValue = 0;
+      struct thread* current  = thread_current();
+      struct list* fd_list = &(current->fds);
+      
+      /* if the list is emppty */
+      if ( list_empty(fd_list) ) {
+        /* the 0 and 1 are reserved for the console, so decription started from 2 */
+        fdValue = 2;
+
+      } else {
+        
+        /* get the element in the fd list with the largset fd value */
+        struct list_elem* MaxFd = list_max(fd_list, &fd_cmp, NULL);
+        /* the new fd value will be max fa vlaue plus 1 */
+        fdValue = list_entry(MaxFd, struct file_description, elem)->fd + 1;
+      }
+
+      /* allocate the space for new element in fd_list */
+      struct file_description *newFd = (struct file_description *)malloc(sizeof(struct file_description));
+      
+      /* refresh the value in fd */
+      newFd->fd = fdValue;
+      newFd->f = newFile;
+      list_push_front(fd_list, &newFd->elem);
+
+      /* set return value as fd value of new opened file */
+      f->eax = fdValue;
+      break;
     }
+
 
     /* 8-filesize */
     case SYS_FILESIZE: {
