@@ -3,6 +3,10 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "filesys.h"
+#include "file.h"
+#include "stdio.h"
+#include "console.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -170,9 +174,39 @@ syscall_handler (struct intr_frame *f UNUSED)
 
     }
 
-    /* 10-write */
-    case SYS_WRITE: {
 
+    /* 10-write : Writes size bytes from buffer to the open file fd.
+       return: Returns the number of bytes actually written  */
+    case SYS_WRITE: {
+      
+      /* get the fd value, buffer and buffer size */ 
+      int fd = *(sp+1);
+      const void *buffer = *(sp+2);
+      int bufSize = *(sp+3);
+      int writeSize;
+
+      /* if the buffer is invalid, return 0 */
+      if ( fd < 0 | buffer <= 0 ) {
+        f->eax = 0;
+        return;
+      }
+
+      /* if fd equals to 1, write to the console */
+      if (fd == 1) {
+        putbuf( (char*)buffer, bufSize);
+        f->eax = bufSize;
+      } 
+
+      /* else, find the file with the aimed fd value and write buffer to it */
+      struct file_description* writeFd = thread_find_fd(thread_current(), fd);
+      if (writeFd == NULL) {
+        return;
+      } else {
+        /* call the file_write function, return the size of written value */
+        writeSize = file_write(writeFd->f, buffer, bufSize);
+        f->eax = writeSize;
+      }
+      break;    
     }
 
     /* 11-seek */

@@ -360,6 +360,29 @@ thread_search ( int targetTid )
   return NULL;
 }
 
+/* Find the file_description with target fd in the fd_list of thread t */
+struct file_description *
+thread_find_fd ( struct thread* t, int targetFd ) 
+{
+
+  struct list_elem *e;
+  struct list* fd_list = &(t->fds);
+  struct file_description* tempFd;
+  int tempFd;
+  
+  for (e = list_begin (fd_list); e != list_end (fd_list);
+       e = list_next (e))
+    {
+      tempFd = list_entry(e, struct file_description, elem);
+
+      /* if the tempFd has the targetFd, return */
+      if (tempFd->fd == targetFd) {
+        return tempFd;
+      }
+
+    }
+  return NULL;
+}
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
