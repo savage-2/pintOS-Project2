@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "synch.h"
 #include "fixed_point.h"
 
 /* States in a thread's life cycle. */
