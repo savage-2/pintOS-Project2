@@ -3,8 +3,8 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
-#include "filesys.h"
-#include "file.h"
+#include "filesys/filesys.h"
+#include "filesys/file.h"
 #include "stdio.h"
 #include "console.h"
 
