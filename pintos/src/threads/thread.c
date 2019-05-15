@@ -338,7 +338,6 @@ thread_foreach (thread_action_func *func, void *aux)
     }
 }
 
-
 /* Return the thread based on its tid */
 struct thread *
 thread_search ( int targetTid ) 
@@ -351,7 +350,7 @@ thread_search ( int targetTid )
   for (e = list_begin (&all_list); e != list_end (&all_list);
        e = list_next (e))
     {
-      struct thread *t = list_entry (e, struct thread, allelem);
+      t = list_entry (e, struct thread, allelem);
       if (t->tid == targetTid) {
         return t;
       }
@@ -359,6 +358,7 @@ thread_search ( int targetTid )
     }
   return NULL;
 }
+
 
 /* Find the file_description with target fd in the fd_list of thread t */
 struct file_description *
@@ -368,7 +368,6 @@ thread_find_fd ( struct thread* t, int targetFd )
   struct list_elem *e;
   struct list* fd_list = &(t->fds);
   struct file_description* tempFd;
-  int tempFd;
   
   for (e = list_begin (fd_list); e != list_end (fd_list);
        e = list_next (e))
@@ -392,7 +391,6 @@ thread_remove_fd ( struct thread* t, int targetFd )
   struct list_elem *e;
   struct list* fd_list = &(t->fds);
   struct file_description* tempFd;
-  int tempFd;
 
   if (fd_list)
   
