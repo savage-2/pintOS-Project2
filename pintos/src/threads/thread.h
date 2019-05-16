@@ -91,15 +91,16 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-    struct semaphore semaWS;            /* Block the parent thread until the child has executed or failed */
-    struct list childs;                 /* Record the child threads */
-    struct list_elem chile_elem;        /* Child elemment */
-    struct list fds;                    /* File description list */  
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-    struct list_elem t_elem; 
+    /* add for project 2 */
+    struct semaphore semaWS;            /* Block the parent thread until the child has executed or failed */
+    struct list childs;                 /* Record the child threads */
+    struct list_elem chile_elem;        /* Child elemment */
+    struct list fds;                    /* File description list */ 
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -107,12 +108,6 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
-    int64_t block_time;
-    int nice; /*task 3*/
-    fixed_t recent_CPU;   /*task 3*/
-    int prev_priority;   /*task 2: save its priority before priority donation*/
-    struct list holding_lock;  /*task 2: save locks that the thread has already hold*/
-    struct lock *waiting_lock;  /*task 2: save the lock that thread is waiting for*/
   };
 
   /* for file syscall */
@@ -141,10 +136,6 @@ void thread_block (void);
 void thread_unblock (struct thread *);
 
 struct thread *thread_current (void);
-struct thread * thread_search ( int targetTid );
-struct file_description * thread_find_fd ( struct thread *t, int targetFd );
-void  thread_remove_fd ( struct thread* t, int targetFd );
-
 tid_t thread_tid (void);
 const char *thread_name (void);
 
@@ -163,20 +154,10 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void check_block_time(struct thread *t, void *aux);
-
-void update_priority(struct thread *t);
-void update_CPU_load_avg(struct thread *t);
-void update_CPU(struct thread *t);
-fixed_t load_avg;
-
-int update_lock_priority(struct lock *lock);
-int update_thread_priority(struct thread *t);
-void donate_priority(struct thread *t);
-
-bool operator_great_prev_priority(const struct list_elem *a, const struct list_elem *b);
-bool operator_great_priority(const struct list_elem *a, const struct list_elem *b);
+/* add for project 2*/
+struct thread * thread_search ( int targetTid );
+struct file_description * thread_find_fd ( struct thread *t, int targetFd );
+void  thread_remove_fd ( struct thread* t, int targetFd );
 bool fd_cmp (const struct list_elem *a, const struct list_elem *b);
 
 #endif /* threads/thread.h */
-
