@@ -37,8 +37,6 @@ static struct thread *initial_thread;
 /* Lock used by allocate_tid(). */
 static struct lock tid_lock;
 
-fixed_t load_avg;
-
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame 
   {
@@ -90,15 +88,20 @@ void
 thread_init (void) 
 {
   ASSERT (intr_get_level () == INTR_OFF);
+
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
-  sema_init (&initial_thread->semaWS, 0);
   initial_thread->tid = allocate_tid ();
+
+
+  /* this is added for project 2*/
+  // sema_init (&initial_thread->semaWS, 0);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -110,12 +113,12 @@ thread_start (void)
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
   thread_create ("idle", PRI_MIN, idle, &idle_started);
+
   /* Start preemptive thread scheduling. */
   intr_enable ();
 
   /* Wait for the idle thread to initialize idle_thread. */
   sema_down (&idle_started);
-  load_avg = FP_CONST(0);
 }
 
 /* Called by the timer interrupt handler at each timer tick.
@@ -197,14 +200,11 @@ thread_create (const char *name, int priority,
   /* Stack frame for switch_threads(). */
   sf = alloc_frame (t, sizeof *sf);
   sf->eip = switch_entry;
-  sf->ebp = 0; 
-  
-  t->nice = thread_current()->nice;
-  t->recent_CPU = thread_current()->recent_CPU;
+  sf->ebp = 0;
 
   /* Add to run queue. */
   thread_unblock (t);
-  thread_yield();
+
   return tid;
 }
 
@@ -241,8 +241,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-//  list_push_back (&ready_list, &t->elem);
-  list_insert_ordered(&ready_list, &t->elem, operator_great_priority, NULL);
+  list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -313,13 +312,11 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread) 
-//    list_push_back (&ready_list, &cur->elem);
-    list_insert_ordered(&ready_list, &cur->elem, &operator_great_priority, NULL);
+    list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
 }
-
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
@@ -338,85 +335,11 @@ thread_foreach (thread_action_func *func, void *aux)
     }
 }
 
-/* Return the thread based on its tid */
-struct thread *
-thread_search ( int targetTid ) 
-{
-  struct list_elem *e;
-  struct thread *t;
-
-  ASSERT (intr_get_level () == INTR_OFF);
-
-  for (e = list_begin (&all_list); e != list_end (&all_list);
-       e = list_next (e))
-    {
-      t = list_entry (e, struct thread, allelem);
-      if (t->tid == targetTid) {
-        return t;
-      }
-
-    }
-  return NULL;
-}
-
-
-/* Find the file_description with target fd in the fd_list of thread t */
-struct file_description *
-thread_find_fd ( struct thread* t, int targetFd ) 
-{
-
-  struct list_elem *e;
-  struct list* fd_list = &(t->fds);
-  struct file_description* tempFd;
-  
-  for (e = list_begin (fd_list); e != list_end (fd_list);
-       e = list_next (e))
-    {
-      tempFd = list_entry(e, struct file_description, elem);
-
-      /* if the tempFd has the targetFd, return */
-      if (tempFd->fd == targetFd) {
-        return tempFd;
-      }
-
-    }
-  return NULL;
-}
-
-/* Find the aimed file_description and remove it from thread's fd_list */
-void 
-thread_remove_fd ( struct thread* t, int targetFd ) 
-{
-
-  struct list_elem *e;
-  struct list* fd_list = &(t->fds);
-  struct file_description* tempFd;
-
-  if (fd_list)
-  
-  for (e = list_begin (fd_list); e != list_end (fd_list);
-       e = list_next (e))
-    {
-      tempFd = list_entry(e, struct file_description, elem);
-
-      /* if the tempFd has the targetFd, remove e */
-      if (tempFd->fd == targetFd) {
-        list_remove(e);
-        return;
-      }
-    }
-}
-
-
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) 
 {
-  if (thread_mlfqs)
-    return;
-  thread_current ()->prev_priority = new_priority;
-  update_thread_priority(thread_current ());
-  thread_yield();
+  thread_current ()->priority = new_priority;
 }
 
 /* Returns the current thread's priority. */
@@ -428,33 +351,33 @@ thread_get_priority (void)
 
 /* Sets the current thread's nice value to NICE. */
 void
-thread_set_nice (int new_nice) 
+thread_set_nice (int nice UNUSED) 
 {
-  struct thread *t = thread_current();
-  t->nice = new_nice;
-  update_priority(t);
-  thread_yield();
+  /* Not yet implemented. */
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  return thread_current()->nice;
+  /* Not yet implemented. */
+  return 0;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  return FP_ROUND(FP_MULT_MIX(load_avg,100));
+  /* Not yet implemented. */
+  return 0;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  return FP_ROUND(FP_MULT_MIX(thread_current()->recent_CPU,100));
+  /* Not yet implemented. */
+  return 0;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -543,17 +466,10 @@ init_thread (struct thread *t, const char *name, int priority)
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
-  t->prev_priority = priority;
   t->magic = THREAD_MAGIC;
-  t->block_time = 0;
-  t->nice = 0;
-  t->recent_CPU = FP_CONST(0);
-  list_init(&t->holding_lock);
-  t->waiting_lock = NULL;
 
   old_level = intr_disable ();
-//  list_push_back (&all_list, &t->allelem);
-  list_insert_ordered(&all_list, &t->allelem, &operator_great_priority, NULL);
+  list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
 }
 
@@ -671,138 +587,76 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
-void check_block_time(struct thread *t, void *aux){
-	enum intr_level old_level = intr_disable();
-	if(t->block_time==0){
-		return;
-	}
-	if(t->block_time>0&&t->status==THREAD_BLOCKED){
-		t->block_time--;
-		if(t->block_time<=0)
-			thread_unblock(t);
-	}
-	intr_set_level(old_level);
-}
-
-/*update priority for a certain thread according to its load_avg and recenr_CPU
-for task3*/
-void update_priority(struct thread *t){
-  if(thread_mlfqs){
-    if(t==idle_thread)
-	return;
-    t->priority = FP_INT_PART(FP_SUB_MIX(FP_SUB(FP_CONST(PRI_MAX), FP_DIV_MIX(t->recent_CPU,4)), t->nice*2));
-    if(t->priority<PRI_MIN){
-      t->priority = PRI_MIN;
-    }else if(t->priority>PRI_MAX){
-      t->priority = PRI_MAX;  
-    }
-  }
-}
-
-/*update load_avg
-update recent_CPU for all threads
-update thread's priority because its load_avg and recent_CPU are changes*/
-void update_CPU_load_avg(struct thread *t){
-  if(thread_mlfqs){
-    size_t num = list_size(&ready_list);
-    if(t!=idle_thread){
-      num ++;
-    }
-    load_avg = FP_DIV_MIX(FP_ADD(FP_MULT_MIX(load_avg,59),FP_CONST (num)),60);
-    struct thread *temp;
-    for(struct list_elem *a = list_begin(&all_list); a!=list_end(&all_list);a = a->next){
-      temp = list_entry(a, struct thread, allelem);
-      if(temp!=idle_thread){
-        temp->recent_CPU = FP_ADD_MIX(FP_MULT( FP_DIV ( FP_MULT_MIX(load_avg, 2), FP_ADD_MIX ( FP_MULT_MIX(load_avg, 2), 1)), temp->recent_CPU) , temp->nice);
-        update_priority(temp);
-      }
-    }
-  }
-}
-
-// add recent_CPU by one in each time interrupt
-void update_CPU(struct thread *t){
-  if(thread_mlfqs){
-    if(t!=idle_thread){
-      t->recent_CPU = FP_ADD_MIX(t->recent_CPU, 1);
-    }
-  }
-}
-
-
-/*donate priority recursively
-for a new thread's waiting_lock, if the lock's priority is less than thread's priority, donation will happen
-lock's priority change because of donation, update lock holder's priority
-if lock holder stil has waiting_lock, donation will happen recursively*/
-void donate_priority(struct thread *t){
-	enum intr_level old_level = intr_disable();
-	struct lock *l = t->waiting_lock;
-	while(l){
-		struct thread *holder = l->holder;
-		if(t->priority>l->priority){
-			l->priority = t->priority;
-			holder->priority = t->priority;
-			update_thread_priority(l->holder);		
-		}else{
-			break;
-		}
-		l = holder->waiting_lock;
-	}
-	intr_set_level(old_level);
-}
-
-/*get the max priority of thread in waiting list of the lock
-when a lock is released or has a new holder, waiter list will change
-priority of lock before donation need to update*/
-int update_lock_priority(struct lock *lock){
-	enum intr_level old_level = intr_disable();
-	int max_p = -1;
-	if(!list_empty(&lock->semaphore.waiters)){
-		struct list_elem *temp;
-		for(temp = list_begin(&lock->semaphore.waiters);temp != list_end(&lock->semaphore.waiters); temp = temp->next){
-			struct thread *t = list_entry(temp, struct thread, elem);
-			if(t->priority>max_p){
-				max_p = t->priority;
-			}		
-		}
-	}
-	lock->priority = max_p;
-	intr_set_level(old_level);
-	return max_p;
-}
-
-/*get the max priority of lock in holding_lock list of thread
-priority donation will happen on lock first
-update priority of thread after donation according to its holding_lock*/
-int update_thread_priority(struct thread *t){
-	ASSERT (!thread_mlfqs);
-	enum intr_level old_level = intr_disable();
-	int max_p = t->prev_priority;
-	struct list_elem *temp;
-	for(temp = list_begin(&t->holding_lock);temp != list_end(&t->holding_lock); temp = temp->next){
-		struct lock *l = list_entry(temp, struct lock, elem);
-		if(l->priority>max_p){
-			max_p = l->priority;			
-		}		
-	}
-	t->priority = max_p;
-	list_sort(&ready_list, operator_great_priority, NULL);
-	intr_set_level(old_level);
-	return max_p;
-}
-
-// maintain priority queue by prev_priority
-bool operator_great_prev_priority(const struct list_elem *a, const struct list_elem *b){ 
-    return list_entry(a, struct thread, elem)->prev_priority > list_entry(b, struct thread, elem)->prev_priority;
-  } 
-
-// maintain priority queue by priority
-bool operator_great_priority(const struct list_elem *a, const struct list_elem *b){ 
-    return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
-  }
 
 /* fd value compare function. */
 bool fd_cmp (const struct list_elem *a, const struct list_elem *b)
 {
   return list_entry(a, struct file_description, elem)->fd > list_entry(a, struct file_description, elem)->fd;
+}
+
+/* Return the thread based on its tid */
+struct thread *
+thread_search ( int targetTid ) 
+{
+  struct list_elem *e;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+
+  for (e = list_begin (&all_list); e != list_end (&all_list);
+       e = list_next (e))
+    {
+      struct thread *t = list_entry (e, struct thread, allelem);
+      if (t->tid == targetTid) {
+        return t;
+      }
+
+    }
+  return NULL;
+}
+
+/* Find the file_description with target fd in the fd_list of thread t */
+struct file_description *
+thread_find_fd ( struct thread* t, int targetFd ) 
+{
+
+  struct list_elem *e;
+  struct list* fd_list = &(t->fds);
+  struct file_description* tempFd;
+  
+  for (e = list_begin (fd_list); e != list_end (fd_list);
+       e = list_next (e))
+    {
+      tempFd = list_entry(e, struct file_description, elem);
+
+      /* if the tempFd has the targetFd, return */
+      if (tempFd->fd == targetFd) {
+        return tempFd;
+      }
+
+    }
+  return NULL;
+}
+
+/* Find the aimed file_description and remove it from thread's fd_list */
+void 
+thread_remove_fd ( struct thread* t, int targetFd ) 
+{
+
+  struct list_elem *e;
+  struct list* fd_list = &(t->fds);
+  struct file_description* tempFd;
+
+  if (fd_list)
+  
+  for (e = list_begin (fd_list); e != list_end (fd_list);
+       e = list_next (e))
+    {
+      tempFd = list_entry(e, struct file_description, elem);
+
+      /* if the tempFd has the targetFd, remove e */
+      if (tempFd->fd == targetFd) {
+        list_remove(e);
+        return;
+      }
+    }
 }
