@@ -75,8 +75,62 @@ start_process (void *file_name_)
 
     /* If load failed, quit. */
   palloc_free_page (file_name);
+
+
   if (!success) 
     thread_exit ();
+
+  // char *temp_esp = if_.esp; //get stack pointer
+  // int num = -1;
+  // char *parameters[1024]; //store each parameter
+  // for (; token != NULL; token = strtok_r (NULL, " ", &parameter)){
+  //   num++;
+  //   parameters[num] = token;
+  // }
+
+  // char *address_parameter[num]; //store address of each parameter
+  // for(int i = num;i>0;i--){
+  //   if_.esp = if_.esp-(strlen(parameters[i])+1);
+  //   address_parameter[i] = if_.esp;
+  //   strlcpy(if_.esp,parameters[i],strlen(parameters[i])+2);
+  // }
+  // while((int)if_.esp%4!=0){
+  //   if_.esp--;
+  // }
+
+  // int *temp = if_.esp-4;
+  // *temp-- = 0;
+  // for(int i=num;i>0;i--){
+  //   *temp--=address_parameter[i];
+  // }
+  // *temp--=temp+1;
+  // *temp--=num;
+  // *temp--=0;
+  // if_.esp = temp+1;
+
+
+  // char *esp = (char *)if_.esp;
+  // char *arg[256];
+  // int i,n=0;
+  // for(;token!=NULL;token=strtok_r(NULL," ",&parameter)){
+  //   esp-=strlen(token)+1;
+  //   strlcpy(esp,token,strlen(token)+2);
+  //   arg[n++]=esp;
+  // }
+  // while((int)esp%4!=0){
+  //   esp--;
+  // }
+  // int *p=esp-4;
+  // *p--=0;
+  // for(i=n-1;i>=0;i--){
+  //   *p--=(int *)arg[i];
+  // }
+  // *p--=p+1;
+  // *p--=n;
+  // *p--=0;
+  // esp = p+1;
+  // if_.esp = esp;
+
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
