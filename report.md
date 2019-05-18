@@ -126,7 +126,14 @@
 
 - #### Relative Function
 
-  #### *TODO*
+	syscall.c
+  - shutdown_power_off()
+  - exit_process(int status)
+  - sys_exec(char *filename)
+  - sys_practice()
+	thread.c
+  - thread_exit()
+  - 
 
 
 
@@ -134,15 +141,13 @@
 
   
 
-  - **halt()**
+   - **halt()**
 
-    *TODO*
-
-    
+    use shutdown_power_off() to close the system directly.
 
   - **exit()**
 
-    *TODO*
+    get the return status of process from stack, delete the process from its parent's child_list and then allocate thread_exit(). In thread_exit(), as the current thread need to exit, its parent thread need to wait for it to exit until current thread exit finish.
 
     
 
