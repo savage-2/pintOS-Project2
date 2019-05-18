@@ -24,7 +24,6 @@ void halt (void) NO_RETURN;
 void exit (int status) NO_RETURN;
 pid_t exec (const char *file);
 int wait (pid_t);
-int practice(int num);
 bool create (const char *file, unsigned initial_size);
 bool remove (const char *file);
 int open (const char *file);

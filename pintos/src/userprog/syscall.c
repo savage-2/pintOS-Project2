@@ -75,10 +75,11 @@ syscall_handler (struct intr_frame *f UNUSED)
 
     }
 
-    /* 4-practice */
+    /* 4-practice 
     case SYS_PRACTICE: {
 
-    }
+    } 
+    */
 
     /* 5-create : create a new thread with initial size
        return value: true if successful, false otherwise */ 
@@ -87,7 +88,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       const char *fileName = (char*)*(sp+1);
 
       /* if the filename is empty or too long, exit */
-      if ( fileName == NULL | strlen(fileName) >= FILENAME_MAX_LEN ) {
+      if ( fileName == NULL | strlen(fileName) >= 14 ) {
          printf ("thread %s has exited!\n", thread_name());
          thread_exit();
          break;
@@ -108,7 +109,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       const char *fileName = (char*)*(sp+1);
 
       /* if the filename is empty or too long, exit */
-      if ( fileName == NULL | strlen(fileName) >= FILENAME_MAX_LEN ) {
+      if ( fileName == NULL | strlen(fileName) >= 14 ) {
         thread_exit();
         break;
       } else {

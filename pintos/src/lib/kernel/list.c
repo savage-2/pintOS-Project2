@@ -245,24 +245,12 @@ list_push_back (struct list *list, struct list_elem *elem)
        ...do something with e...
      }
 */
-
-/*change list_remove() so that list_elem at head or tail can alse be removed*/
 struct list_elem *
 list_remove (struct list_elem *elem)
 {
-  if(is_interior (elem)){
-    elem->prev->next = elem->next;
-    elem->next->prev = elem->prev;
-  }else if(is_head(elem)&&(!is_tail(elem))){
-    elem->prev->next = elem->next;
-    elem->next->prev = NULL;
-  }else if(is_tail(elem)&&(!is_head(elem))){
-    elem->prev->next = NULL;
-    elem->next->prev = elem->prev;
-  }else if(is_head(elem)&&is_tail(elem)){
-  	elem->prev->next = NULL;
-	elem->next->prev = NULL;
-  }
+  ASSERT (is_interior (elem));
+  elem->prev->next = elem->next;
+  elem->next->prev = elem->prev;
   return elem->next;
 }
 
