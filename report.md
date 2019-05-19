@@ -19,7 +19,7 @@
 - #### Task 1
 
   - **Code** : Li Shiyi
-  - **Report **: Li Shiyi
+  - **Report**: Li Shiyi
 
 - #### Task 2 
 
@@ -45,7 +45,7 @@
 4. The System call function will read the parameters from the stack by moving the pointer. After executed the executable, it will put the return value in a specific position.
 5. The Main process of operating system will wait for the return value of system call, when it has received the return value, the main process will be shut down.
 
-![1558162981269](C:\Users\41313\AppData\Roaming\Typora\typora-user-images\1558162981269.png)
+![1558162981269](https://github.com/savage-2/pintOS-Project2/blob/master/1558162981269.png)
 
 
 
@@ -184,7 +184,7 @@ Acquire ``system_file_lock`` first. Get filename from stack, if filename is null
 - **PRACTICE: sys_practice()**
 
 Acquire ``system_file_lock`` first. Get the parameter from stack and and add one on it. Then push it back to the stack and release the lock.
-
+​  
 
 
 - #### Synchronization
