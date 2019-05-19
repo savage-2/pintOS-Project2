@@ -61,42 +61,41 @@
 
 - #### Data structures
 
-  #### NO
+  We don't use any special data structures here, the stack of user program has been designed well, all we need to do is implementing the features of this stack.
 
   
 
 - #### Relative Function
+
+    
 
   **process.c**
 
   - process_execute (const char *file_name): get first parameter as name of thread.
   - get_parameter_num(char * file_name): get number of parameters.
   - setup_stack (void **esp, char * file_name): split parameters and push them into stack
+
   
 
 - #### Algorithm & implementation
 
-     
-
-  - **Get the name and path of executable**
-
-  - 
+  
 
   - **The time to pass the argument**
 
-    After the  the **load()** function has finished in function **start_process()**,      we can write the arguments to the top of stack.
+    After the  the ``load()`` function has finished in function ``start_process()``,   we can write the arguments to the top of stack.
 
     
 
   - **Decode the arguments string**
 
-    Predefined function **strtok_r** to is used to separate out one argument (a string). The series of  argument strings will be copied to the user stack in preparation for the next step. It should be mentioned that the order of characters in string is opposite to the increasing direction of the stack.
+    After we get the argument number by calling ``get_parameter_num()``.Predefined function ``strtok_r`` to is used to separate out one argument (a string). We can this function in ``setup_stack`` . The series of  argument strings will be copied to the user stack in preparation for the next step. It should be mentioned that the order of characters in string is opposite to the increasing direction of the stack.
 
     
 
   - **Set the value of pointer**
 
-    After the program has been loaded, the executable's entry pointer eip will be set,as well as the initial stack pointer esp, which will point to the initial stack position by calling function setup_stack.
+    After the program has been loaded, the executable's entry pointer eip will be set,as well as the initial stack pointer esp, which will point to the initial stack position by calling function ``setup_stack``.
 
 
 
@@ -325,9 +324,7 @@
 
   - **close()**:: sys_close(int fd)
 
-    The first thing we need to do is find the find 
-
-    
+    The first thing we need to do is find the file based on its id. After we get the aimed file, we call three functions in order to close the file.  ``file_close``  function in filesys,h is used to close the file. After that, we call ``list_remove`` to remove this file from the current thread's file list. In the end, we call function ``free`` to free the space this file object allocated. 
 
     
 
@@ -335,7 +332,7 @@
 
 - #### Synchronization
 
-  Synchronization is so important for file system
+  Synchronization is an important issue for file system system call. In our implementation,  we use the most straightforward way. The lock ``system_file_lock`` is acquired before we call the predefined function and released after the file operation is ended.  
 
   
 
@@ -349,11 +346,11 @@
 
   The division of labor has been listed in the pervious part. **TODO**
 
-  
+
 
 - #### *Does your code exhibit any major memory safety problems (especially regarding C strings), memory leaks, poor error handling, or race conditions?*
 
-  
+
 
 - #### *Did you use consistent code style? Your code should blend in with the existing Pintos code. Check your use of indentation, your spacing, and your naming conventions.*
 
@@ -373,7 +370,7 @@
 
 - #### *Did you copy-paste code instead of creating reusable functions?*
 
-  No, we always try to create the reusable but not use duplicated code block in different places. For example , we create function xxxx and xxxx in thread.c to implement the file search in one thread. Because of that, we don't need to implement the same 
+  No, we always try to create the reusable but not use duplicated code block in different places. For example , we create function xxxx and xxxx in thread.c to implement the file search in one thread. Because of that, we don't need to implement the same.
 
   
 
