@@ -21,13 +21,13 @@
   - **Code** : Li Shiyi
   - **Report **: Li Shiyi
 
-
 - #### Task 2 
+
   - **Code** : Li Shiyi & Guo Mengwei
   - **Report** : Li Shiyi & Guo Mengwei
 
-
 - #### Task 3
+
   - **Code**: Li Shiyi & Guo Mengwei
   - **Report**: Li Shiyi & Guo Mengwei
 
@@ -71,32 +71,29 @@
 
 
 
-
 - #### Algorithm & implementation
 
+- **Get the name and path of executable**
+
+  *TODO*
+
   
-   - **Get the name and path of executable**
 
-     *TODO*
+- **The time to pass the argument**
 
-     
+  After the  the **load()** function has finished in function **start_process()**, we can write the arguments to the top of stack. 
 
-  - **The time to pass the argument**
+  
 
-    After the  the **load()** function has finished in function **start_process()**, we can write the arguments to the top of stack. 
+- **Decode the arguments string**
 
-    
+  Predefined function **strtok_r** to is used to separate out one argument (a string). The series of  argument strings will be copied to the user stack in preparation for the next step. It should be mentioned that the order of characters in string is opposite to the increasing direction of the stack.
 
-   - **Decode the arguments string**
+  
 
-     Predefined function **strtok_r** to is used to separate out one argument (a string). The series of  argument strings will be copied to the user stack in preparation for the next step. It should be mentioned that the order of characters in string is opposite to the increasing direction of the stack.
+  - **Set the value of pointer**
 
-     
-
-    - **Set the value of pointer**
-
-       After the program has been loaded, the executable's entry pointer eip will be set,as well as the initial stack pointer esp, which will point to the initial stack position by calling function setup_stack.
-
+    After the program has been loaded, the executable's entry pointer eip will be set,as well as the initial stack pointer esp, which will point to the initial stack position by calling function setup_stack.
 
 
 
@@ -120,58 +117,83 @@
 
 - #### Data structures
 
-  #### *TODO*
+  ​         In ``struct thread``
+
+  - ``bool load_success``: check whether child process load successfully.
+
+  - ``semaphore child_lock``: record whether it need to wait for its child to execute.
+
+  - ``int return_value``: status when a thread need to exit.
+
+  - ``struct list *child_list``: store all its child thread.
+
+  - ``struct thread *parent``: current thread's parent thread.
+
+  - ``struct child_thread *waiting_child``: child thread that current thread is waiting for to execute.
+
+    Add ``struct child_thread``
+
+  - ``int tid``: tid of child thread.
+
+  - ``struct list_elem child_elem``: elem of child thread.
+
+  - ``int return_value``: return value of child thread.
+
+  - ``bool is_waited``: whether child thread is been waited by its parent thread.
+
+  - ``struct semaphore child_wait_lock``: whether child thread is waiting for other thread.
 
   
 
 - #### Relative Function
 
-	syscall.c
-  - shutdown_power_off()
-  - exit_process(int status)
-  - sys_exec(char *filename)
-  - sys_practice()
-	thread.c
-  - thread_exit()
-  - 
+  ​          **syscall.c**
 
-
+  - sys_exit(int status): syscall of exit
+  - sys_exec(char *filename): syscall of exec
+  - sys_practice(): syscall of practice
+    ​          **thread.c**
+  - thread_exit(): exit a thread
+    ​          **process.c**
+  - check_addr(const void *vaddr): check whether the address in stack is valid
 
 - #### Algorithm & implementation
 
   
 
-   - **halt()**
+​    
 
-    use shutdown_power_off() to close the system directly.
+- **HALT**
 
-  - **exit()**
+Use ``shutdown_power_off()`` in device to close the system directly.
 
-    get the return status of process from stack, delete the process from its parent's child_list and then allocate thread_exit(). In thread_exit(), as the current thread need to exit, its parent thread need to wait for it to exit until current thread exit finish.
+​    
 
-    
+- **EXIT: sys_exit()**
 
-  - **exec()**
+Get the return status of process from stack, delete the process from its parent's ``child_list`` and then allocate ``thread_exit()``. In ``thread_exit()``, as the current thread need to exit, its parent thread need to wait for it to exit until current thread exit finish.
 
-    *TODO*
+​    
 
-    
+- **EXEC: sys_exec()**
 
-  - **practice()**
+Acquire ``system_file_lock`` first. Get filename from stack, if filename is null, which means thread has already exit, allocate ``thread_exit()`` to remove the thread. Else, use ``filesys_open()`` in ``filesys.h`` to open the file. If file exists, close the file, release the lock and allocate ``process_execute()`` in ``process.c``.
 
-    *TODO*
+​    
+
+- **PRACTICE: sys_practice()**
+
+Acquire ``system_file_lock`` first. Get the parameter from stack and and add one on it. Then push it back to the stack and release the lock.
 
 
 
 - #### Synchronization
 
-  ### *TODO*
+In ``sys_exec()`` and ``sys_practice()``, it need to operate on file system. In this two method, use ``lock_acquire(&system_file_lock)`` and ``lock_release(&system_file_lock)`` to prevent several processes operate on the same file.
 
 
 
 ### Task 3:  File Operation Syscalls
-
-
 
 
 
@@ -183,13 +205,33 @@
 
 - #### Data structures
 
-  #### *TODO*
+  ​         In ``struct thread``
+
+  - ``struct list *file_list``: store all files that the current thread opens.
+  - ``struct file *self``: current thread's executable file.
+  - ``int file_count``: number of files it has opened.
+
+  ​       Add ``struct file_describer``
+
+  - ``int fd``: id of file_descirber.
+  - ``struct list_elem file_elem``: elem of file_describer.
+  - ``int file *ptr``: file of file_describer.
 
   
 
 - #### Relative Function
 
-  #### *TODO*
+  ​          **syscall.c**
+
+  - syycall_handler(struct intr_frame *f): add syscall function.
+  - sys_open(char *filename): open file with the filename.
+  - sys_read(int size, void *buffer, int fd): read file with certain fd.
+  - sys_write(int size, void *buffer, int fd): write into file with certain fd.
+  - sys_close(int fd): close the file with its file_describer has certain fd.
+    ​          **thread.c**
+  - thread_exit(): exit a thread
+    ​          **process.c**
+  - check_addr(const void *vaddr): check whether the address in stack is valid
 
 
 
@@ -199,58 +241,57 @@
 
   - **create()**
 
-    *TODO*
+ Get the filename an size of the file that we want to create from stack and use ``check_addr`` to check whether these values are valid. Then acquire the ``system_file_lock`` to prevent other thread to operate on file system. Allocate ``filesys_create`` in ``filesys.h`` to create the file and release the lock.
 
-    
+​    
 
-  - **remove()**
+- **remove()**
 
-    *TODO*
+  Get the filename of the file that we want to remove from stack and use ``check_addr`` to check whether these values are valid. Then allocate ``filesys_remove`` in ``filesys.h`` to remove the file.
 
-    
+​    
 
-  - **open()**
+- **open()**
 
-    *TODO*
+  Get the filename of the file that we want to remove from stack and use ``check_addr`` to check whether these values are valid. Then allocate ``sys_open`` to open file. In ``sys_open``, acquire the ``system_file_lock`` to prevent other thread to operate on file system. Allocate ``filesys_open`` in ``filesys.h`` to open the file and release the lock. If the file exists, use a file_describer of record the file and its fd in current thread. Then push it into current thread's ``file_list``.
 
-    
+​    
 
-  - **filesize()**
+- **filesize()**
 
-    *TODO*
+  *TODO*
 
-    
-
-  - **read()**
   
-    *TODO*
-  
-    
-    
-  - **write()**
-  
-    *TODO*
-  
-    
-  
-  - **seek()**
-  
-    *TODO*
 
-    
-  
-  - **tell()**
-  
-    *TODO*
+- **read()**
 
-    
-  
-  - **close()**
-  
-    *TODO*
-    
-    
+  *TODO*
 
+  
+
+- **write()**
+
+  *TODO*
+
+  
+
+- **seek()**
+
+  *TODO*
+
+  
+
+- **tell()**
+
+  *TODO*
+
+  
+
+- **close()**
+
+  *TODO*
+
+  
 
 - #### Synchronization
 
@@ -278,14 +319,11 @@
 
 
 
-
 - #### *Is your code simple and easy to understand?*
 
 
 
-
 - #### *If you have very complex sections of code in your solution, did you add enough comments to explain them?*
-
 
 
 
@@ -307,5 +345,6 @@
 
 - #### *Did you re-implement linked list algorithms instead of using the provided list manipulation*?
 
-
-    No, we don't modify the basic structure of default linked list. We add two linked list named **child_list**(child thread list of every thread) and **file_list**(the file description of one thread) in the thread.h by using the provided list manipulation.
+```
+No, we don't modify the basic structure of default linked list. We add two linked list named **child_list**(child thread list of every thread) and **file_list**(the file description of one thread) in the thread.h by using the provided list manipulation.
+```
