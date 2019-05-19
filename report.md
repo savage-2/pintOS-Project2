@@ -67,8 +67,11 @@
 
 - #### Relative Function
 
-  #### *TODO*
+  **process.c**
 
+  - process_execute (const char *file_name): get first parameter as name of thread.
+  - get_parameter_num(char * file_name): get number of parameters.
+  - setup_stack (void **esp, char * file_name): split parameters and push them into stack
   
 
 - #### Algorithm & implementation
